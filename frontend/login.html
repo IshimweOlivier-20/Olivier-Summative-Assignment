@@ -33,6 +33,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/toast.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -44,10 +45,12 @@
           password: $(this).find('[name=password]').val(),
         };
         const persistent = $('#remember').is(':checked');
-        authLogin(data, persistent).then(()=>{
-          window.location.href = 'index.html';
+        authLogin(data, persistent).then(({token, user})=>{
+          // Redirect based on role
+          if(user && user.role === 'admin') window.location.href = 'admin/dashboard.html';
+          else window.location.href = 'index.html';
         }).catch(err=>{
-          alert(err.message || 'Login failed');
+          showError((err && err.message) || 'Login failed');
         });
       });
     });

@@ -18,9 +18,14 @@ router.get('/:id', authenticate, authorize(['admin']), controller.get);
 
 // Enable user
 router.patch('/:id/enable', authenticate, authorize(['admin']), controller.enable);
+router.put('/:id/enable', authenticate, authorize(['admin']), controller.enable);
 
 // Disable user
 router.patch('/:id/disable', authenticate, authorize(['admin']), controller.disable);
+router.put('/:id/disable', authenticate, authorize(['admin']), controller.disable);
+
+// Admin: update a user's role (accept PUT for frontend convenience)
+router.put('/:id/role', authenticate, authorize(['admin']), controller.updateRole);
 
 
 // -----------------------------

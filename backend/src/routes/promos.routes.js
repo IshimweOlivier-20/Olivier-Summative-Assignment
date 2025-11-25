@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate, authorize } from '../middlewares/auth.middleware.js';
+import { authenticate, authorize, optionalAuthenticate } from '../middlewares/auth.middleware.js';
 import { uploadPromoVideo } from '../middlewares/upload.middleware.js';
 import { body } from 'express-validator';
 import * as controller from '../controllers/promos.controller.js';
@@ -7,9 +7,10 @@ import validateBody from '../middlewares/validateBody.middleware.js';
 
 const router = express.Router();
 
-// Public (authenticated users)
-router.get('/', authenticate, controller.list);
-router.get('/:id', authenticate, controller.get);
+// Public read endpoints — published promos are visible to non-admins
+// Use optionalAuthenticate so admin requests include req.user
+router.get('/', optionalAuthenticate, controller.list);
+router.get('/:id', optionalAuthenticate, controller.get);
 
 // Admin-only routes
 router.post(

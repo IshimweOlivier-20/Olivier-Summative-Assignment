@@ -1,5 +1,5 @@
 // main.js - UI helpers and small global behaviors
-function showToast(msg){ alert(msg); }
+function showToast(msg){ if(window.showToast) return window.showToast(msg); alert(msg); }
 
 $(function(){
   // Render auth links / profile

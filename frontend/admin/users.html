@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Manage Users - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  <div class="max-w-5xl mx-auto p-4">
+    <h1 class="text-2xl font-semibold">User Management</h1>
+    <div class="mt-4 bg-white p-4 rounded shadow">
+      <table class="w-full text-left table-auto" id="users-table">
+        <thead>
+          <tr class="text-sm text-gray-600"><th class="p-2">Name</th><th class="p-2">Email</th><th class="p-2">Role</th><th class="p-2">Active</th><th class="p-2">Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/toast.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    $(function(){
+      if(!isAuthenticated() || !isAdmin()){ showError('Admin access required'); window.location.href='../login.html'; return; }
+
+      function loadUsers(){
+        apiGet('/api/users').then(resp=>{
+          const users = (resp && resp.data) ? resp.data : resp;
+          const tbody = $('#users-table tbody').empty();
+          users.forEach(u=>{
+            const tr = $(`<tr class="border-t"><td class="p-2">${u.full_name}</td><td class="p-2">${u.email}</td><td class="p-2">${u.role}</td><td class="p-2">${u.is_active? 'Yes':'No'}</td><td class="p-2"></td></tr>`);
+            const actions = tr.find('td').last();
+            if(u.role !== 'admin'){
+              actions.append(`<button class="promote px-2 py-1 mr-2 bg-green-600 text-white rounded" data-id="${u.id}">Promote</button>`);
+            } else {
+              actions.append(`<button class="demote px-2 py-1 mr-2 bg-yellow-600 text-white rounded" data-id="${u.id}">Demote</button>`);
+            }
+            if(u.is_active){
+              actions.append(`<button class="disable px-2 py-1 mr-2 bg-red-600 text-white rounded" data-id="${u.id}">Disable</button>`);
+            } else {
+              actions.append(`<button class="enable px-2 py-1 mr-2 bg-blue-600 text-white rounded" data-id="${u.id}">Enable</button>`);
+            }
+            tbody.append(tr);
+          });
+        }).catch(err=> showError(err.message || 'Failed to load users'));
+      }
+
+      loadUsers();
+
+      // Delegate actions
+      $('#users-table').on('click', '.promote', function(){
+        const id = $(this).data('id');
+        if(!confirm('Promote this user to admin?')) return;
+        apiPut('/api/users/' + id + '/role', { role: 'admin' }).then(()=>{ showSuccess('Promoted'); loadUsers(); }).catch(e=> showError(e.message || 'Failed'));
+      });
+
+      $('#users-table').on('click', '.demote', function(){
+        const id = $(this).data('id');
+        if(!confirm('Demote this admin to normal user?')) return;
+        apiPut('/api/users/' + id + '/role', { role: 'user' }).then(()=>{ showSuccess('Demoted'); loadUsers(); }).catch(e=> showError(e.message || 'Failed'));
+      });
+
+      $('#users-table').on('click', '.disable', function(){
+        const id = $(this).data('id');
+        if(!confirm('Disable this user?')) return;
+        apiPut('/api/users/' + id + '/disable', {}).then(()=>{ showSuccess('Disabled'); loadUsers(); }).catch(e=> showError(e.message || 'Failed'));
+      });
+
+      $('#users-table').on('click', '.enable', function(){
+        const id = $(this).data('id');
+        if(!confirm('Enable this user?')) return;
+        apiPut('/api/users/' + id + '/enable', {}).then(()=>{ showSuccess('Enabled'); loadUsers(); }).catch(e=> showError(e.message || 'Failed'));
+      });
+    });
+  </script>
+</body>
+</html>

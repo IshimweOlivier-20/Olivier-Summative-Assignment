@@ -7,8 +7,10 @@ import * as PromoModel from '../models/promos.model.js';
  */
 export const list = async (req, res, next) => {
     try {
-        const { page = 1, limit = 20 } = req.query;
-        const result = await Promos.findAll({ page: Number(page), limit: Number(limit) });
+        const filters = { ...req.query };
+        // Default: non-admins only see published promos
+        if (!req.user || req.user.role !== 'admin') filters.published = true;
+        const result = await Promos.findAll(filters);
         return res.status(200).json({
             status: 200,
             message: 'Promos fetched successfully',

@@ -1,11 +1,21 @@
 import db from '../config/db.js';
 
 export const findAll = async (filters = {}) => {
-    const { page = 1, limit = 20 } = filters;
+    const { page = 1, limit = 20, published } = filters;
     const offset = (page - 1) * limit;
+
+    const where = [];
+    const params = [];
+
+    if (published !== undefined && (published === true || published === 'true' || published === '1')) {
+        params.push(true);
+        where.push(`published = $${params.length}`);
+    }
+
+    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
     const res = await db.query(
-        'SELECT * FROM announcements ORDER BY created_at DESC LIMIT $1 OFFSET $2',
-        [limit, offset]
+        `SELECT * FROM announcements ${whereClause} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        [...params, limit, offset]
     );
     return res.rows;
 };

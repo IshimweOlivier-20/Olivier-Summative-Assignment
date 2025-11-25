@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Announcement Editor - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  <div class="max-w-3xl mx-auto p-4">
+    <h1 class="text-2xl font-semibold">Announcement Editor</h1>
+    <div id="editor" class="mt-4 bg-white p-4 rounded shadow"></div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/toast.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    $(function(){
+      if(!isAuthenticated() || !isAdmin()){ showError('Admin access required'); window.location.href='../login.html'; return; }
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+
+      const formHtml = `
+        <form id="ann-form" class="space-y-4 bg-white p-6 rounded shadow-sm">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Title</label>
+            <input name="title" class="mt-1 w-full border rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Audio</label>
+            <input id="audio-input" name="audio" type="file" accept="audio/*" class="mt-1" />
+            <div id="audio-filename" class="text-xs text-gray-500 mt-1"></div>
+          </div>
+          <div class="flex items-center">
+            <label class="inline-flex items-center">
+              <input id="published-checkbox" type="checkbox" name="published" class="mr-2"/> <span class="text-sm">Published</span>
+            </label>
+          </div>
+          <div>
+            <button id="save-btn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save Announcement</button>
+          </div>
+        </form>
+      `;
+      $('#editor').html(formHtml);
+
+      if(id){
+        apiGet('/api/announcements/' + id).then(resp=>{
+          const a = resp && resp.data ? resp.data : resp;
+          const f = $('#ann-form');
+          f.find('[name=title]').val(a.title);
+          $('#published-checkbox').prop('checked', !!a.published);
+          if(a.audio_url) $('#audio-filename').text('Existing audio: ' + a.audio_url.split('/').pop());
+        });
+      }
+
+      // publish / unpublish / delete actions
+      if(id){
+        const actions = $('<div class="mt-4 space-x-2"></div>');
+        const pubBtn = $(`<button id="btn-publish" class="px-3 py-1 bg-green-600 text-white rounded">Publish</button>`);
+        const unpubBtn = $(`<button id="btn-unpublish" class="px-3 py-1 bg-yellow-600 text-white rounded">Unpublish</button>`);
+        const delBtn = $(`<button id="btn-delete" class="px-3 py-1 bg-red-600 text-white rounded">Delete</button>`);
+        $('#editor').append(actions);
+        actions.append(pubBtn, unpubBtn, delBtn);
+
+        pubBtn.on('click', function(){
+          if(!confirm('Publish this announcement?')) return;
+          apiPatch('/api/announcements/' + id + '/publish').then(()=>{ showSuccess('Published'); location.href='../admin/dashboard.html'; }).catch(e=> showError(e.message || 'Publish failed'));
+        });
+
+        unpubBtn.on('click', function(){
+          if(!confirm('Unpublish this announcement?')) return;
+          apiPatch('/api/announcements/' + id + '/unpublish').then(()=>{ showSuccess('Unpublished'); location.href='../admin/dashboard.html'; }).catch(e=> showError(e.message || 'Unpublish failed'));
+        });
+
+        delBtn.on('click', function(){
+          if(!confirm('Delete this announcement?')) return;
+          apiDelete('/api/announcements/' + id).then(()=>{ showSuccess('Deleted'); location.href='../admin/dashboard.html'; }).catch(e=> showError(e.message || 'Delete failed'));
+        });
+      }
+
+      $('#audio-input').on('change', function(){
+        const f = this.files && this.files[0];
+        $('#audio-filename').text(f ? f.name : '');
+      });
+
+      $('#ann-form').on('submit', function(e){
+        e.preventDefault();
+        const form = document.getElementById('ann-form');
+        const fd = new FormData(form);
+
+        // Ensure published boolean string
+        const publishedChecked = $('#published-checkbox').is(':checked');
+        fd.set('published', publishedChecked ? 'true' : 'false');
+
+        // Client-side validation: require audio on create
+        if(!id && (!form.audio || !form.audio.files || form.audio.files.length === 0)){
+          showError('Please select an audio file to upload');
+          return;
+        }
+
+        const path = id ? ('/api/announcements/' + id) : '/api/announcements';
+        apiPost(path, fd, false, false).then(()=>{ showSuccess(id? 'Updated' : 'Created'); window.location.href='../admin/dashboard.html'; }).catch(err=> showError((err && err.message) || 'Save failed'));
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,16 +1,26 @@
 import db from '../config/db.js';
 
-export const findAll = async ({ page = 1, limit = 20 } = {}) => {
+export const findAll = async (filters = {}) => {
+    const { page = 1, limit = 20, published } = filters;
     const offset = (page - 1) * limit;
 
+    const where = [];
+    const params = [];
+
+    if (published !== undefined && (published === true || published === 'true' || published === '1')) {
+        params.push(true);
+        where.push(`published = $${params.length}`);
+    }
+
+    const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
     const { rows } = await db.query(
-        `SELECT * FROM promos
-        ORDER BY created_at DESC
-        LIMIT $1 OFFSET $2`,
-        [limit, offset]
+        `SELECT * FROM promos ${whereClause} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        [...params, limit, offset]
     );
 
-    const countRes = await db.query(`SELECT COUNT(*) FROM promos`);
+    const countQuery = where.length ? `SELECT COUNT(*) FROM promos ${whereClause}` : `SELECT COUNT(*) FROM promos`;
+    const countRes = await db.query(countQuery, params);
     const total = parseInt(countRes.rows[0].count, 10);
 
     return {

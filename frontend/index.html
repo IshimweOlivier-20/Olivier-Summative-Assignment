@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Olivier Events - Home</title>
+  <title>Civic Events - Home</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="css/fallback.css">
   <link rel="icon" href="/favicon.ico">
 </head>
 <body class="bg-gray-100 text-gray-900">
   <div id="app" class="min-h-screen flex flex-col">
     <header class="bg-white shadow">
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
         <div class="flex items-center">
-          <a href="index.html" class="text-2xl font-bold">Olivier</a>
-          <nav class="ml-6 space-x-4 hidden sm:block" id="main-nav">
+          <a href="index.html" class="text-2xl font-extrabold tracking-tight text-indigo-600">Civic Events</a>
+          <nav class="ml-6 space-x-4 hidden md:flex items-center" id="main-nav">
             <a href="events.html" class="text-gray-600 hover:text-gray-900">Events</a>
             <a href="announcements.html" class="text-gray-600 hover:text-gray-900">Announcements</a>
             <a href="promos.html" class="text-gray-600 hover:text-gray-900">Promos</a>
@@ -32,19 +33,45 @@
             <a id="link-login" href="login.html" class="px-3 py-1 bg-indigo-600 text-white rounded">Login</a>
             <a id="link-signup" href="signup.html" class="px-3 py-1 border rounded">Sign up</a>
           </div>
-          <div id="profile-menu" class="hidden">
-            <button id="btn-profile" class="px-3 py-1 rounded bg-gray-50">Profile</button>
+          <div id="profile-menu" class="hidden relative">
+            <button id="btn-profile" class="px-3 py-1 rounded bg-gray-50">Profile ▾</button>
+            <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border rounded shadow py-1">
+              <a id="link-profile" href="profile.html" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">My profile</a>
+              <a id="link-registrations" href="my-registrations.html" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">My registrations</a>
+              <a id="link-admin" href="admin/dashboard.html" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hidden">Admin dashboard</a>
+              <button id="btn-logout" class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-50">Logout</button>
+            </div>
           </div>
         </div>
       </div>
     </header>
 
-    <main class="flex-1 max-w-6xl mx-auto p-4">
-      <section class="bg-white p-6 rounded shadow">
-        <h1 class="text-2xl font-semibold">Welcome to Olivier</h1>
-        <p class="mt-2 text-gray-600">A polished frontend demo using Tailwind CSS and jQuery. Use the navigation to explore events, promos and announcements. Login to see dashboards and admin controls.</p>
-        <div class="mt-6">
-          <a href="events.html" class="px-4 py-2 bg-indigo-600 text-white rounded">Browse Events</a>
+    <main class="flex-1 max-w-6xl mx-auto p-6">
+      <section class="bg-gradient-to-r from-white via-indigo-50 to-white p-8 rounded-lg shadow-lg overflow-hidden md:flex md:items-center md:justify-between">
+        <div class="md:w-2/3">
+          <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900">Civic Events — Connect, Attend, Share</h1>
+          <p class="mt-4 text-gray-600 text-lg">Find public events in your community, hear important announcements, and watch promo videos. Sign up to register and receive notifications.</p>
+          <div class="mt-6 flex items-center space-x-3">
+            <a href="events.html" class="inline-block px-5 py-3 bg-indigo-600 text-white rounded-lg shadow">Browse Events</a>
+            <a href="signup.html" class="inline-block px-5 py-3 border rounded-lg text-indigo-600">Create account</a>
+          </div>
+        </div>
+        <div class="mt-6 md:mt-0 md:w-1/3">
+          <img src="images/hero-events.svg" alt="Events illustration" class="w-full max-w-xs mx-auto" onerror="this.style.display='none'" />
+        </div>
+      </section>
+      <section class="mt-8 grid gap-6 md:grid-cols-3">
+        <div class="p-4 bg-white rounded shadow">
+          <h3 class="font-semibold">Events</h3>
+          <p class="mt-2 text-sm text-gray-600">See upcoming events and register.</p>
+        </div>
+        <div class="p-4 bg-white rounded shadow">
+          <h3 class="font-semibold">Announcements</h3>
+          <p class="mt-2 text-sm text-gray-600">Listen to important audio announcements.</p>
+        </div>
+        <div class="p-4 bg-white rounded shadow">
+          <h3 class="font-semibold">Promos</h3>
+          <p class="mt-2 text-sm text-gray-600">Watch promo videos with captions.</p>
         </div>
       </section>
     </main>

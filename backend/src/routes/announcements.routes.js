@@ -1,5 +1,6 @@
 import express from 'express';
 import * as controller from '../controllers/announcements.controller.js';
+import { optionalAuthenticate } from '../middlewares/auth.middleware.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
 import { body } from 'express-validator';
 import { uploadAudio } from '../middlewares/upload.middleware.js';
@@ -7,8 +8,10 @@ import validateBody from '../middlewares/validateBody.middleware.js';
 
 const router = express.Router();
 
-router.get('/', authenticate, controller.getAllAnnouncements);
-router.get('/:id', authenticate, controller.getAnnouncementById);
+// Public read endpoints (published announcements visible to everyone)
+// Use optionalAuthenticate so admins are recognized when making public requests
+router.get('/', optionalAuthenticate, controller.getAllAnnouncements);
+router.get('/:id', optionalAuthenticate, controller.getAnnouncementById);
 
 router.post(
     '/',

@@ -8,3 +8,25 @@ const AUTH_STORAGE_KEY = 'olivier_auth_v1';
 function storage(persistent){
   return persistent ? localStorage : sessionStorage;
 }
+
+// Dynamically load toast.js next to this config file so showError/showSuccess are available
+(function(){
+  try{
+    // find the current script element that loaded this file
+    const scripts = document.getElementsByTagName('script');
+    let base = '';
+    for(let i=0;i<scripts.length;i++){
+      const s = scripts[i];
+      if(s.src && s.src.indexOf('config.js') !== -1){
+        base = s.src.replace(/config\.js(?:\?.*)?$/,'');
+        break;
+      }
+    }
+    if(!base) base = './';
+    const toastSrc = base + 'toast.js';
+    // avoid loading twice
+    if(!document.querySelector('script[src="'+toastSrc+'"]')){
+      const t = document.createElement('script'); t.src = toastSrc; t.async = false; document.head.appendChild(t);
+    }
+  }catch(e){/* ignore */}
+})();

@@ -14,6 +14,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/toast.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -43,10 +44,10 @@
             email: $(this).find('[name=email]').val()
           };
           apiPost('/api/users/profile/me', JSON.stringify(body), 'application/json')
-            .then(()=>{ alert('Profile updated'); })
-            .catch(err=> alert(err.message || 'Update failed'));
+            .then(()=>{ showSuccess('Profile updated'); })
+            .catch(err=> showError(err.message || 'Update failed'));
         });
-      }).catch(err=>{ alert('Failed to load profile'); window.location.href='login.html'; });
+      }).catch(err=>{ showError('Failed to load profile'); window.location.href='login.html'; });
     });
   </script>
 </body>

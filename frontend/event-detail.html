@@ -14,6 +14,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/toast.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -23,18 +24,39 @@
       if(!id) { $('#event').html('<div class="text-red-600">Missing event id</div>'); return; }
 
       function render(ev){
+        // defensive field resolution with fallbacks
+        const title = ev.title || ev.name || ev.event_title || 'Untitled Event';
+        const location = ev.location || ev.venue || ev.place || '';
+        const description = ev.description || ev.details || ev.body || '';
+
+        // Robust date parsing: accept ISO string, number, or null
+        const parseDate = v => {
+          if(!v) return null;
+          try{
+            const d = (typeof v === 'number') ? new Date(v) : new Date(v);
+            if(isNaN(d.getTime())) return null;
+            return d.toLocaleString();
+          }catch(e){ return null; }
+        };
+
+        const starts = parseDate(ev.starts_at) || parseDate(ev.start_time) || parseDate(ev.startsAt) || 'TBD';
+        const ends = parseDate(ev.ends_at) || parseDate(ev.end_time) || parseDate(ev.endsAt) || 'TBD';
+
+        const imageUrl = (ev.metadata && ev.metadata.image_url) || ev.image_url || ev.image || '';
+
         const html = `
-          <h1 class="text-2xl font-semibold">${ev.title}</h1>
-          <div class="text-sm text-gray-600">${ev.location} • ${ev.starts_at} to ${ev.ends_at}</div>
-          <img src="${ev.metadata?.image_url || ''}" alt="" class="mt-4 max-h-64 object-cover w-full rounded" />
-          <p class="mt-4 text-gray-700">${ev.description}</p>
+          <h1 class="text-2xl font-semibold">${title}</h1>
+          <div class="text-sm text-gray-600">${location} ${location? '•' : ''} ${starts} to ${ends}</div>
+          ${imageUrl ? `<img src="${imageUrl}" alt="" class="mt-4 max-h-64 object-cover w-full rounded" />` : ''}
+          <p class="mt-4 text-gray-700">${description}</p>
           <div class="mt-4" id="event-actions"></div>
           <div class="mt-6" id="feedback-section"></div>
         `;
         $('#event').html(html);
 
         // actions (register/cancel)
-        apiGet('/api/event-registrations/my-registrations').then(list=>{
+        apiGet('/api/event-registrations/my-registrations').then(resp=>{
+          const list = resp && resp.data ? resp.data : resp;
           const registered = (list||[]).some(r=> String(r.event_id) === String(ev.id));
           const $act = $('#event-actions');
           if(isAuthenticated()){
@@ -50,19 +72,20 @@
 
         $(document).on('click','#btn-register', function(){
           apiPost('/api/event-registrations/register', JSON.stringify({ event_id: ev.id }), 'application/json')
-            .then(()=>{ alert('Registered'); location.reload(); })
-            .catch(err=> alert(err.message || 'Registration failed'));
+            .then(()=>{ showSuccess('Registered'); location.reload(); })
+            .catch(err=> showError(err.message || 'Registration failed'));
         });
 
         $(document).on('click','#btn-cancel', function(){
           apiPost('/api/event-registrations/cancel', JSON.stringify({ event_id: ev.id }), 'application/json')
-            .then(()=>{ alert('Registration cancelled'); location.reload(); })
-            .catch(err=> alert(err.message || 'Cancel failed'));
+            .then(()=>{ showSuccess('Registration cancelled'); location.reload(); })
+            .catch(err=> showError(err.message || 'Cancel failed'));
         });
       }
 
       apiGet('/api/events/' + id).then(res=>{
-        render(res);
+        const ev = res && res.data ? res.data : res;
+        render(ev);
       }).catch(err=>{
         $('#event').html('<div class="text-red-600">Failed to load event</div>');
       });

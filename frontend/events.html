@@ -38,9 +38,9 @@
       }
 
       // Fetch published events
-      apiGet('/api/events', {published: true}).then(res=>{
-        // assume res is array
-        render(res || []);
+      apiGet('/api/events', {published: true}).then(resp=>{
+        const data = resp && resp.data ? resp.data : resp;
+        render(data || []);
       }).catch(err=>{
         $('#events-list').html('<div class="p-4 bg-white rounded text-red-600">Failed to load events</div>');
       });

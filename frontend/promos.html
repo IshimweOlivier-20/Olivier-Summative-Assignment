@@ -17,7 +17,8 @@
   <script src="js/api.js"></script>
   <script>
     $(function(){
-      apiGet('/api/promos').then(list=>{
+      apiGet('/api/promos').then(resp=>{
+        const list = resp && resp.data ? resp.data : resp;
         const $c = $('#promo-list').empty();
         (list||[]).forEach(p=>{
           const item = `

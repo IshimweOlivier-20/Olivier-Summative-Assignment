@@ -32,3 +32,19 @@ export const authorize = (roles = []) => {
         next();
     };
 };
+
+// Optional authenticate: if Authorization header present, verify token and set req.user, otherwise continue
+export const optionalAuthenticate = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) return next();
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const user = await Users.findById(decoded.id);
+        if (user) req.user = user;
+        return next();
+    } catch (err) {
+        // ignore token errors and continue as unauthenticated
+        return next();
+    }
+};

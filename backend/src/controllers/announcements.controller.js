@@ -6,7 +6,9 @@ import * as NotificationModel from '../models/notifications.model.js';
  */
 export const getAllAnnouncements = async (req, res, next) => {
     try {
-        const announcements = await AnnouncementModel.findAll(req.query);
+        const filters = { ...req.query };
+        if (!req.user || req.user.role !== 'admin') filters.published = true;
+        const announcements = await AnnouncementModel.findAll(filters);
         return res.status(200).json({
             status: 200,
             message: 'Announcements retrieved successfully',

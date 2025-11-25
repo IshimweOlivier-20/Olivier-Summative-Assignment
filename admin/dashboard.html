@@ -14,13 +14,14 @@
   </div>
 
   <script src="../js/config.js"></script>
+  <script src="../js/toast.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script>
     $(function(){
       // This page must be restricted to admins. Client-side guard:
       if(!isAuthenticated()){ window.location.href = '../login.html'; return; }
-      if(!isAdmin()){ alert('Admin access required'); window.location.href = '../index.html'; return; }
+      if(!isAdmin()){ showError('Admin access required'); window.location.href = '../index.html'; return; }
 
       apiGet('/api/dashboard/admin').then(data=>{
         $('#dashboard-stats').empty();

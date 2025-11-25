@@ -2,14 +2,15 @@ import express from 'express';
 import { body } from 'express-validator';
 import * as controller from '../controllers/events.controller.js';
 import validateBody from '../middlewares/validateBody.middleware.js';
-import { authenticate, authorize } from '../middlewares/auth.middleware.js';
+import { authenticate, authorize, optionalAuthenticate } from '../middlewares/auth.middleware.js';
 import { uploadEventImage } from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
-// All logged-in users
-router.get('/', authenticate, controller.list);
-router.get('/:id', authenticate, controller.get);
+// Public read endpoints (published items visible to unauthenticated users)
+// Use optionalAuthenticate so req.user is populated when a valid token is provided
+router.get('/', optionalAuthenticate, controller.list);
+router.get('/:id', optionalAuthenticate, controller.get);
 
 // Admin-only routes (now supports image upload)
 router.post(

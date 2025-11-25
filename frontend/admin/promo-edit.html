@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Promo Editor - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  <div class="max-w-3xl mx-auto p-4">
+    <h1 class="text-2xl font-semibold">Promo Editor</h1>
+    <div id="editor" class="mt-4 bg-white p-4 rounded shadow"></div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/toast.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    $(function(){
+      if(!isAuthenticated() || !isAdmin()){ showError('Admin access required'); window.location.href='../login.html'; return; }
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+
+      const formHtml = `
+        <form id="promo-form" class="space-y-4 bg-white p-6 rounded shadow-sm">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Title</label>
+            <input name="title" class="mt-1 w-full border rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea name="description" class="mt-1 w-full border rounded px-3 py-2" rows="4"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Caption Text</label>
+            <input name="caption_text" class="mt-1 w-full border rounded px-3 py-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Video</label>
+            <input id="video-input" name="video" type="file" accept="video/*" class="mt-1" />
+            <div id="video-filename" class="text-xs text-gray-500 mt-1"></div>
+          </div>
+          <div class="flex items-center">
+            <label class="inline-flex items-center">
+              <input id="published-checkbox" type="checkbox" name="published" class="mr-2"/> <span class="text-sm">Published</span>
+            </label>
+          </div>
+          <div>
+            <button id="save-btn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save Promo</button>
+          </div>
+        </form>
+      `;
+      $('#editor').html(formHtml);
+
+      if(id){
+        apiGet('/api/promos/' + id).then(resp=>{
+          const p = resp && resp.data ? resp.data : resp;
+          const f = $('#promo-form');
+          f.find('[name=title]').val(p.title);
+          f.find('[name=description]').val(p.description);
+          f.find('[name=caption_text]').val(p.caption_text);
+          $('#published-checkbox').prop('checked', !!p.published);
+          if(p.video_url) $('#video-filename').text('Existing video: ' + p.video_url.split('/').pop());
+        });
+      }
+
+      // publish / unpublish actions
+      if(id){
+        const actions = $('<div class="mt-4 space-x-2"></div>');
+        const pubBtn = $(`<button id="btn-publish" class="px-3 py-1 bg-green-600 text-white rounded">Publish</button>`);
+        const unpubBtn = $(`<button id="btn-unpublish" class="px-3 py-1 bg-yellow-600 text-white rounded">Unpublish</button>`);
+        const delBtn = $(`<button id="btn-delete" class="px-3 py-1 bg-red-600 text-white rounded">Delete</button>`);
+        $('#editor').append(actions);
+        actions.append(pubBtn, unpubBtn, delBtn);
+
+        pubBtn.on('click', function(){
+          if(!confirm('Publish this promo?')) return;
+          apiPatch('/api/promos/' + id + '/publish').then(()=>{ showSuccess('Published'); location.href='../admin/dashboard.html'; }).catch(e=> showError(e.message || 'Publish failed'));
+        });
+
+        unpubBtn.on('click', function(){
+          if(!confirm('Unpublish this promo?')) return;
+          apiPatch('/api/promos/' + id + '/unpublish').then(()=>{ showSuccess('Unpublished'); location.href='../admin/dashboard.html'; }).catch(e=> showError(e.message || 'Unpublish failed'));
+        });
+
+        delBtn.on('click', function(){
+          if(!confirm('Delete this promo?')) return;
+          apiDelete('/api/promos/' + id).then(()=>{ showSuccess('Deleted'); location.href='../admin/dashboard.html'; }).catch(e=> showError(e.message || 'Delete failed'));
+        });
+      }
+
+      // show selected filename
+      $('#video-input').on('change', function(){
+        const f = this.files && this.files[0];
+        $('#video-filename').text(f ? f.name : '');
+      });
+
+      $('#promo-form').on('submit', function(e){
+        e.preventDefault();
+        const form = document.getElementById('promo-form');
+        const fd = new FormData(form);
+
+        // Ensure published is sent as explicit boolean string
+        const publishedChecked = $('#published-checkbox').is(':checked');
+        fd.set('published', publishedChecked ? 'true' : 'false');
+
+        // Client-side validation: require a video on create
+        if(!id && (!form.video || !form.video.files || form.video.files.length === 0)){
+          showError('Please select a video file to upload');
+          return;
+        }
+
+        const path = id ? ('/api/promos/' + id) : '/api/promos';
+        apiPost(path, fd, false, false).then(()=>{ showSuccess(id? 'Updated' : 'Created'); window.location.href='../admin/dashboard.html'; }).catch(err=> showError((err && err.message) || 'Save failed'));
+      });
+    });
+  </script>
+</body>
+</html>

@@ -8,12 +8,15 @@ export const create = async (req, res, next) => {
         const { title, description, location, starts_at, ends_at } = req.body;
 
         // Base event data
+        // Accept published flag from form (checkbox) — normalize to boolean
+        const published = (req.body.published === 'on' || req.body.published === 'true' || req.body.published === true) ? true : false;
         const eventData = {
             title,
             description,
             location,
             starts_at,
             ends_at,
+            published,
             created_at: new Date(),
             updated_at: new Date(),
             metadata: {}
@@ -52,7 +55,12 @@ export const create = async (req, res, next) => {
 
 export const list = async (req, res, next) => {
     try {
-        const data = await Events.findAll(req.query);
+        const filters = { ...req.query };
+        // If the caller is not an admin, default to published events only
+        if (!req.user || req.user.role !== 'admin') {
+            filters.published = true;
+        }
+        const data = await Events.findAll(filters);
         return res.status(200).json({
             status: 200,
             message: 'Events fetched successfully',
@@ -120,6 +128,8 @@ export const update = async (req, res, next) => {
         }
 
         // Update the event data
+        const published = (req.body.published === 'on' || req.body.published === 'true' || req.body.published === true) ? true : undefined;
+
         const updatedData = {
             title: title ?? existingEvent.title,
             description: description ?? existingEvent.description,
@@ -127,6 +137,7 @@ export const update = async (req, res, next) => {
             starts_at: starts_at ?? existingEvent.starts_at,
             ends_at: ends_at ?? existingEvent.ends_at,
             metadata,
+            published,
             updated_at: new Date(),
         };
 

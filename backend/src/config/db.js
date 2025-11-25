@@ -10,7 +10,8 @@ const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
-    password: process.env.DB_PASS,
+    // accept either DB_PASSWORD (used in .env) or DB_PASS (legacy)
+    password: process.env.DB_PASSWORD || process.env.DB_PASS,
     port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 5432,
 });
 
@@ -21,7 +22,7 @@ pool.connect()
         client.release();
     })
     .catch(err => {
-        console.error('PostgreSQL connection error:', err.stack);
+        console.error('PostgreSQL connection error:', err && err.message ? err.message : err);
     });
 
 export default pool;

@@ -109,3 +109,18 @@ export const updateSelf = async (req, res, next) => {
         next(err);
     }
 };
+
+// Admin: update a user's role
+export const updateRole = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+        if (!role || !['admin','user'].includes(role)) {
+            return res.status(400).json({ status: 400, message: 'Invalid role' });
+        }
+        const user = await Users.updateUser(id, { role });
+        return res.status(200).json({ status: 200, message: 'Role updated successfully', data: user });
+    } catch (err) {
+        next(err);
+    }
+};

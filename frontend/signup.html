@@ -38,6 +38,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/toast.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -64,14 +65,14 @@
         const email = $(this).find('[name=email]').val();
         const password = $(this).find('[name=password]').val();
         const confirm = $(this).find('[name=confirm_password]').val();
-        if(password !== confirm){ alert('Passwords do not match'); return; }
+        if(password !== confirm){ showError('Passwords do not match'); return; }
         const score = checkPasswordStrength(password);
-        if(score < 3){ alert('Password too weak'); return; }
+        if(score < 3){ showError('Password too weak'); return; }
         authSignup({full_name,email,password}).then(()=>{
-          alert('Signup successful. Please login.');
+          showSuccess('Signup successful. Please login.');
           window.location.href = 'login.html';
         }).catch(err=>{
-          alert(err.message || 'Signup failed');
+          showError((err && err.message) || 'Signup failed');
         });
       });
     });

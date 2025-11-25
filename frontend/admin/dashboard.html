@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin Dashboard - Olivier</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  <div class="max-w-6xl mx-auto p-4">
+    <h1 class="text-2xl font-semibold">Admin Dashboard</h1>
+    <div id="dashboard-stats" class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    $(function(){
+      // This page must be restricted to admins. Client-side guard:
+      if(!isAuthenticated()){ window.location.href = '../login.html'; return; }
+      if(!isAdmin()){ alert('Admin access required'); window.location.href = '../index.html'; return; }
+
+      apiGet('/api/dashboard/admin').then(data=>{
+        $('#dashboard-stats').empty();
+        const metrics = [
+          ['Total events', data.total_events],
+          ['Total promos', data.total_promos],
+          ['Users', data.users_count]
+        ];
+        metrics.forEach(m=>{
+          $('#dashboard-stats').append(`<div class="bg-white p-4 rounded shadow"><div class="text-sm text-gray-500">${m[0]}</div><div class="text-2xl font-bold">${m[1]||0}</div></div>`);
+        });
+      }).catch(()=>$('#dashboard-stats').html('<div class="p-4 bg-white rounded text-red-600">Failed to load dashboard</div>'));
+    });
+  </script>
+</body>
+</html>

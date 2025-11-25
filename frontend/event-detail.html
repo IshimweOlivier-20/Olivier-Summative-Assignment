@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Event Detail - Olivier</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  <div class="max-w-4xl mx-auto p-4">
+    <a href="events.html" class="text-indigo-600">← Back to events</a>
+    <div id="event" class="mt-4 bg-white p-6 rounded shadow"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    $(function(){
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if(!id) { $('#event').html('<div class="text-red-600">Missing event id</div>'); return; }
+
+      function render(ev){
+        const html = `
+          <h1 class="text-2xl font-semibold">${ev.title}</h1>
+          <div class="text-sm text-gray-600">${ev.location} • ${ev.starts_at} to ${ev.ends_at}</div>
+          <img src="${ev.metadata?.image_url || ''}" alt="" class="mt-4 max-h-64 object-cover w-full rounded" />
+          <p class="mt-4 text-gray-700">${ev.description}</p>
+          <div class="mt-4" id="event-actions"></div>
+          <div class="mt-6" id="feedback-section"></div>
+        `;
+        $('#event').html(html);
+
+        // actions (register/cancel)
+        apiGet('/api/event-registrations/my-registrations').then(list=>{
+          const registered = (list||[]).some(r=> String(r.event_id) === String(ev.id));
+          const $act = $('#event-actions');
+          if(isAuthenticated()){
+            if(registered){
+              $act.html('<button id="btn-cancel" class="px-3 py-1 bg-red-600 text-white rounded">Cancel registration</button>');
+            } else {
+              $act.html('<button id="btn-register" class="px-3 py-1 bg-indigo-600 text-white rounded">Register</button>');
+            }
+          } else {
+            $act.html('<a href="login.html" class="px-3 py-1 bg-indigo-600 text-white rounded">Login to register</a>');
+          }
+        }).catch(()=>{});
+
+        $(document).on('click','#btn-register', function(){
+          apiPost('/api/event-registrations/register', JSON.stringify({ event_id: ev.id }), 'application/json')
+            .then(()=>{ alert('Registered'); location.reload(); })
+            .catch(err=> alert(err.message || 'Registration failed'));
+        });
+
+        $(document).on('click','#btn-cancel', function(){
+          apiPost('/api/event-registrations/cancel', JSON.stringify({ event_id: ev.id }), 'application/json')
+            .then(()=>{ alert('Registration cancelled'); location.reload(); })
+            .catch(err=> alert(err.message || 'Cancel failed'));
+        });
+      }
+
+      apiGet('/api/events/' + id).then(res=>{
+        render(res);
+      }).catch(err=>{
+        $('#event').html('<div class="text-red-600">Failed to load event</div>');
+      });
+    });
+  </script>
+</body>
+</html>

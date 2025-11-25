@@ -52,7 +52,8 @@ function authLogin(credentials, persistent){
 }
 
 function authSignup(data){
-  return apiPost('/api/auth/register', JSON.stringify(data), 'application/json')
+  // backend route is /api/auth/signup
+  return apiPost('/api/auth/signup', JSON.stringify(data), 'application/json')
     .then(res=> res);
 }
 

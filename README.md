@@ -160,10 +160,5 @@ git commit -m "feat: add admin auth, role-based UI, and publish controls"
 git push -u origin import-local-changes
 ```
 
-Replace the commit message above with one of your choosing (a recommended simple message is shown in the repository root).
 
----
-
-If you want, I can also create a PR draft message for you or help exclude specific files before pushing (for example, `TODO.txt` or any AI artifacts).
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/2cX0K4ec)
-# CivicEvent+ Project
+Created with ❤️ by Olivier Ishimwe

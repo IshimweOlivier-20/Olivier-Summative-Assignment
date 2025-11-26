@@ -15,8 +15,9 @@ Usage:
 #>
 
 param(
-  [string]$RemoteUrl = 'https://github.com/ALU-BSE/summative-assessment-civicevents-project-IshimweOlivier-20.git',
-  [string]$BranchName = 'import-local-changes',
+  [string]$RemoteUrl = 'https://github.com/IshimweOlivier-20/Olivier-Summative-Assignment.git',
+  [string]$BranchName = 'add-video',
+  [string]$CommitMessage = 'adding actual video.',
   [string[]]$ExcludeDirs = @('.git','node_modules','.vscode','.github'),
   [string[]]$ExcludeFiles = @('.env','env.local','TODO.txt','TODO.md','todo.md','*.ai*','*.gpt*','*copilot*','*chatgpt*')
 )
@@ -60,7 +61,7 @@ try{
   }
 
   git add -A
-  git commit -m "chore: import local workspace — frontend + backend updates"
+  git commit -m $CommitMessage
   if($LASTEXITCODE -ne 0){ Write-Error "git commit failed"; exit 1 }
 
   Write-Host "Pushing branch '$BranchName' to origin"
